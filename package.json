@@ -1,0 +1,22 @@
+{
+  "name": "devweb",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "hyperframes": "hyperframes"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stevetran4u/devweb.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stevetran4u/devweb/issues"
+  },
+  "homepage": "https://github.com/stevetran4u/devweb#readme",
+  "devDependencies": {
+    "hyperframes": "^0.8.185"
+  }
+}
