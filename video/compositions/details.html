@@ -1,0 +1,115 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      font-family: var(--font-body);
+      color: var(--color-ink);
+    }
+    #details-ground {
+      position: absolute;
+      inset: 0;
+      background: var(--color-berry);
+    }
+    #details-flood {
+      position: absolute;
+      inset: 0;
+      background: var(--color-ground);
+    }
+    #details-stack {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 300px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 36px;
+      text-align: center;
+    }
+    #details-date {
+      font-family: var(--font-display);
+      font-size: 120px;
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.015em;
+    }
+    #details-rule {
+      width: 160px;
+      height: 3px;
+      background: var(--color-accent);
+    }
+    #details-time,
+    #details-place {
+      font-size: 46px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+    #details-stack .details-word {
+      display: inline-block;
+      margin: 0 0.14em;
+    }
+  </style>
+  <div data-hf-id="hf-dpso"
+    id="root"
+    data-composition-id="details"
+    data-width="1920"
+    data-height="1080"
+    data-composition-variables='[
+      {"id":"details-date","type":"string","label":"Date","default":"Friday, December 19"},
+      {"id":"details-time","type":"string","label":"Time","default":"7 PM till late"},
+      {"id":"details-place","type":"string","label":"Place","default":"The Grand Hall"}
+    ]'
+  >
+    <div data-hf-id="hf-18cr" id="details-ground"></div>
+    <div data-hf-id="hf-5lnm" id="details-stack">
+      <div data-hf-id="hf-r00t" id="details-date" class="clip details-line" data-start="0.2" data-duration="3.8" data-text-var="details-date">
+        Friday, December 19
+      </div>
+      <div data-hf-id="hf-u5v4" id="details-rule"></div>
+      <div data-hf-id="hf-c4h8" id="details-time" class="clip details-line" data-start="0.2" data-duration="3.8" data-text-var="details-time">
+        7 PM till late
+      </div>
+      <div data-hf-id="hf-hw0l" id="details-place" class="clip details-line" data-start="0.2" data-duration="3.8" data-text-var="details-place">
+        The Grand Hall
+      </div>
+    </div>
+    <div data-hf-id="hf-uumu" id="details-flood"></div>
+  </div>
+  <script>
+    (function () {
+      const root = document.querySelector('[data-composition-id="details"]');
+      const vars = (window.__hyperframes && window.__hyperframes.getVariables && window.__hyperframes.getVariables()) || {};
+      // Copy comes from the scene's variables; the markup text is the fallback.
+      const copy = (el) => String(vars[el.dataset.textVar] ?? el.textContent).trim();
+      const lines = [...root.querySelectorAll(".details-line")];
+      for (const line of lines) {
+        line.innerHTML = copy(line)
+          .split(/\s+/)
+          .map((w) => '<span class="details-word">' + w + "</span>")
+          .join(" ");
+      }
+      const words = (line) => line.querySelectorAll(".details-word");
+      const [date, time, place] = lines;
+
+      const tl = gsap.timeline({ paused: true });
+      // Each line blurs in word by word; the next line starts while the last is still landing.
+      tl.fromTo(words(date), { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power4.out", stagger: 0.08 }, 0.25);
+      tl.fromTo(root.querySelector("#details-rule"), { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "expo.out" }, 0.55);
+      tl.fromTo(words(time), { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power4.out", stagger: 0.08 }, 0.75);
+      tl.fromTo(words(place), { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power4.out", stagger: 0.08 }, 1.05);
+      // Evergreen opens from the centre as the copy blurs away.
+      tl.to(root.querySelectorAll(".details-word"), { opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power3.in", stagger: 0.015 }, 3.4);
+      tl.to(root.querySelector("#details-rule"), { scaleX: 0, duration: 0.25, ease: "power3.in" }, 3.4);
+      tl.fromTo(
+        root.querySelector("#details-flood"),
+        { clipPath: "circle(0% at 50% 50%)" },
+        { clipPath: "circle(75% at 50% 50%)", duration: 0.4, ease: "power2.inOut" },
+        3.5,
+      );
+
+      window.__timelines["details"] = tl;
+    })();
+  </script>
+</template>

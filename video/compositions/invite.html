@@ -1,0 +1,144 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        ellipse 70% 60% at 50% 42%,
+        color-mix(in srgb, var(--color-accent) 18%, var(--color-ground)) 0%,
+        var(--color-ground) 70%
+      );
+      font-family: var(--font-body);
+    }
+    #invite-lights {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 320px;
+    }
+    #invite-wire {
+      fill: none;
+      stroke: color-mix(in srgb, var(--color-ink) 35%, transparent);
+      stroke-width: 3;
+    }
+    #invite-lights .invite-bulb {
+      position: absolute;
+      width: 26px;
+      height: 38px;
+      border-radius: 50% 50% 46% 46%;
+      background: var(--bulb);
+      box-shadow:
+        0 0 22px 6px color-mix(in srgb, var(--bulb) 70%, transparent),
+        0 0 70px 18px color-mix(in srgb, var(--bulb) 25%, transparent);
+    }
+    #invite-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 540px;
+      text-align: center;
+      color: var(--color-ink);
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 96px;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+    }
+    #invite-line .invite-word {
+      display: inline-block;
+      margin: 0 0.12em;
+    }
+  </style>
+  <div data-hf-id="hf-uc3e"
+    id="root"
+    data-composition-id="invite"
+    data-width="1920"
+    data-height="1080"
+    data-composition-variables='[{"id":"invite-text","type":"string","label":"Opening line","default":"You’re invited"}]'
+  >
+    <div data-hf-id="hf-065v" id="invite-lights" data-layout-allow-overflow>
+      <svg data-hf-id="hf-agyy" width="1920" height="320" viewBox="0 0 1920 320">
+        <path data-hf-id="hf-uoub" id="invite-wire" d="" />
+      </svg>
+    </div>
+    <h2 data-hf-id="hf-u5wg"
+      id="invite-line"
+      class="clip"
+      data-start="0.9"
+      data-duration="2.6"
+      data-text-var="invite-text"
+    >
+      You’re invited
+    </h2>
+  </div>
+  <script>
+    (function () {
+      const root = document.querySelector('[data-composition-id="invite"]');
+      const vars = (window.__hyperframes && window.__hyperframes.getVariables && window.__hyperframes.getVariables()) || {};
+      // Copy comes from the scene's variables; the markup text is the fallback.
+      const copy = (el) => String(vars[el.dataset.textVar] ?? el.textContent).trim();
+      const lights = root.querySelector("#invite-lights");
+      const wire = root.querySelector("#invite-wire");
+      const W = Number(root.getAttribute("data-width"));
+
+      // A string of fairy lights hung as two shallow sags across the top of the frame.
+      const BULBS = 18;
+      const TOP = 70;
+      const SAG = 110;
+      const palette = ["var(--color-accent)", "var(--color-berry)", "var(--color-ink)", "#3f9a64"];
+      const yAt = (x) => TOP + SAG * Math.sin(Math.PI * ((2 * x) / W)) ** 2;
+      let d = "";
+      for (let x = -20; x <= W + 20; x += 20) d += (d ? " L " : "M ") + x + " " + yAt(x).toFixed(1);
+      wire.setAttribute("d", d);
+
+      const bulbs = [];
+      for (let i = 0; i < BULBS; i++) {
+        const x = ((i + 0.5) / BULBS) * W;
+        const b = document.createElement("span");
+        b.className = "invite-bulb";
+        b.style.setProperty("--bulb", palette[i % palette.length]);
+        b.style.left = x - 13 + "px";
+        b.style.top = yAt(x) + 2 + "px";
+        lights.appendChild(b);
+        bulbs.push(b);
+      }
+
+      // Split the opening line into words for a per-word ink-up.
+      const line = root.querySelector("#invite-line");
+      const words = copy(line).split(/\s+/);
+      line.innerHTML = words.map((w) => '<span class="invite-word">' + w + "</span>").join(" ");
+
+      const css = (name) => getComputedStyle(root).getPropertyValue(name).trim();
+      const ink = css("--color-ink");
+      const dimInk = gsap.utils.interpolate(css("--color-ground"), ink, 0.18);
+
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo(wire, { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 0);
+      // Bulbs switch on left to right like a string being plugged in.
+      tl.fromTo(
+        bulbs,
+        { opacity: 0.08, scale: 0.6 },
+        { opacity: 1, scale: 1, duration: 0.25, ease: "expo.out", stagger: 0.035 },
+        0.15,
+      );
+      // Words ink up from the ground colour, no position change.
+      tl.fromTo(
+        line.querySelectorAll(".invite-word"),
+        { color: dimInk, filter: "blur(6px)" },
+        { color: ink, filter: "blur(0px)", duration: 0.35, ease: "power4.out", stagger: 0.09 },
+        0.9,
+      );
+      // Blur swap out into the title scene; the ground stays.
+      tl.to(
+        line.querySelectorAll(".invite-word"),
+        { opacity: 0, filter: "blur(8px)", duration: 0.2, ease: "power3.in", stagger: 0.05 },
+        3.15,
+      );
+      tl.to(bulbs, { opacity: 0, duration: 0.2, ease: "power3.in", stagger: 0.01 }, 3.15);
+      tl.to(wire, { opacity: 0, duration: 0.2, ease: "power3.in" }, 3.25);
+
+      window.__timelines["invite"] = tl;
+    })();
+  </script>
+</template>

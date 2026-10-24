@@ -8,5 +8,12 @@
   },
   "media": {
     "autoProxy": true
-  }
+  },
+  "registryItems": [
+    {
+      "name": "snow",
+      "type": "hyperframes:block",
+      "target": "compositions/snow.html"
+    }
+  ]
 }

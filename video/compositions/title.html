@@ -1,0 +1,168 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        ellipse 70% 60% at 50% 42%,
+        color-mix(in srgb, var(--color-accent) 18%, var(--color-ground)) 0%,
+        var(--color-ground) 70%
+      );
+      font-family: var(--font-body);
+    }
+    #title-swing {
+      position: absolute;
+      left: 960px;
+      top: 0;
+      width: 0;
+      height: 0;
+    }
+    #title-string {
+      position: absolute;
+      left: -1px;
+      top: 0;
+      width: 2px;
+      height: 214px;
+      background: color-mix(in srgb, var(--color-accent) 70%, transparent);
+    }
+    #title-cap {
+      position: absolute;
+      left: -22px;
+      top: 206px;
+      width: 44px;
+      height: 30px;
+      border-radius: 6px 6px 3px 3px;
+      background: linear-gradient(90deg, #8a6a2c, var(--color-accent) 45%, #8a6a2c);
+    }
+    #title-ball {
+      position: absolute;
+      left: -110px;
+      top: 226px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: var(--color-berry);
+      box-shadow: 0 30px 80px color-mix(in srgb, var(--color-berry) 35%, transparent);
+    }
+    #title-shine {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.55) 0 7%, transparent 24%),
+        radial-gradient(circle at 60% 70%, transparent 40%, rgba(0, 0, 0, 0.35) 75%);
+    }
+    #title-band {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 96px;
+      height: 16px;
+      background: color-mix(in srgb, var(--color-accent) 85%, transparent);
+    }
+    #title-heading {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 560px;
+      text-align: center;
+      color: var(--color-ink);
+      font-family: var(--font-display);
+      font-size: 168px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    #title-heading .title-word {
+      display: inline-block;
+      margin: 0 0.1em;
+    }
+    #title-heading .title-word.is-accent {
+      color: var(--color-accent);
+      font-style: italic;
+    }
+    #title-heading .title-letter {
+      display: inline-block;
+    }
+  </style>
+  <div data-hf-id="hf-ml6o"
+    id="root"
+    data-composition-id="title"
+    data-width="1920"
+    data-height="1080"
+    data-composition-variables='[
+      {"id":"title-text","type":"string","label":"Title","default":"Christmas Party"}
+    ]'
+  >
+    <div data-hf-id="hf-23u7" id="title-swing" data-layout-allow-overflow>
+      <div data-hf-id="hf-mftp" id="title-string"></div>
+      <div data-hf-id="hf-5ddh" id="title-ball">
+        <div data-hf-id="hf-shgj" id="title-shine"></div>
+        <div data-hf-id="hf-by13" id="title-band"></div>
+      </div>
+      <div data-hf-id="hf-3o0i" id="title-cap"></div>
+    </div>
+    <h1 data-hf-id="hf-snvb" id="title-heading" class="clip" data-start="1" data-duration="3.5" data-text-var="title-text">
+      Christmas Party
+    </h1>
+  </div>
+  <script>
+    (function () {
+      const root = document.querySelector('[data-composition-id="title"]');
+      const vars = (window.__hyperframes && window.__hyperframes.getVariables && window.__hyperframes.getVariables()) || {};
+      // Copy comes from the scene's variables; the markup text is the fallback.
+      const copy = (el) => String(vars[el.dataset.textVar] ?? el.textContent).trim();
+      const swing = root.querySelector("#title-swing");
+      const ball = root.querySelector("#title-ball");
+      const heading = root.querySelector("#title-heading");
+      const W = Number(root.getAttribute("data-width"));
+      const H = Number(root.getAttribute("data-height"));
+
+      // Letters for the per-letter entrance; the last word carries the accent colour.
+      const words = copy(heading).split(/\s+/);
+      heading.innerHTML = words
+        .map((w, i) => {
+          const cls = "title-word" + (i === words.length - 1 && words.length > 1 ? " is-accent" : "");
+          const letters = [...w].map((c) => '<span class="title-letter">' + c + "</span>").join("");
+          return '<span class="' + cls + '">' + letters + "</span>";
+        })
+        .join(" ");
+      const letters = heading.querySelectorAll(".title-letter");
+
+      // Scale that takes the ball from its own radius to past the farthest frame corner.
+      const box = { cx: W / 2, cy: ball.offsetTop + ball.offsetHeight / 2, r: ball.offsetWidth / 2 };
+      const reach = Math.hypot(Math.max(box.cx, W - box.cx), Math.max(box.cy, H - box.cy));
+      const fillScale = (reach / box.r) * 1.08;
+
+      const tl = gsap.timeline({ paused: true });
+      // The ornament drops on its string and settles with a light spring.
+      tl.fromTo(swing, { y: -520 }, { y: 0, duration: 0.9, ease: "elastic.out(1, 0.75)" }, 0.1);
+      tl.fromTo(
+        swing,
+        { rotation: 9, transformOrigin: "0px 0px" },
+        { rotation: 0, duration: 1.6, ease: "elastic.out(1, 0.35)" },
+        0.35,
+      );
+      // Title letters arrive 0.05 s apart with a slight blur.
+      tl.fromTo(
+        letters,
+        { opacity: 0.25, filter: "blur(6px)" },
+        { opacity: 1, filter: "blur(0px)", duration: 0.25, ease: "power4.out", stagger: 0.05 },
+        1,
+      );
+      // The ornament becomes the world: the title leaves, the ball grows past the frame.
+      tl.to(letters, { opacity: 0, filter: "blur(15px)", duration: 0.3, ease: "power3.in", stagger: 0.01 }, 3.7);
+      tl.to(root.querySelector("#title-string"), { opacity: 0, duration: 0.2, ease: "power2.in" }, 3.75);
+      tl.to(root.querySelector("#title-cap"), { opacity: 0, duration: 0.2, ease: "power2.in" }, 3.75);
+      tl.to([root.querySelector("#title-shine"), root.querySelector("#title-band")], { opacity: 0, duration: 0.25, ease: "power2.in" }, 3.7);
+      tl.fromTo(
+        ball,
+        { scale: 1, transformOrigin: "50% 50%" },
+        { scale: fillScale, duration: 0.65, ease: "power2.inOut" },
+        3.8,
+      );
+
+      window.__timelines["title"] = tl;
+    })();
+  </script>
+</template>

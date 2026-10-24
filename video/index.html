@@ -1,15 +1,27 @@
 <!doctype html>
-<html lang="en">
+<html
+  lang="en"
+  data-composition-variables='[
+    {"id":"color-ground","type":"color","label":"Background","default":"#0e2a1f"},
+    {"id":"color-ink","type":"color","label":"Text","default":"#f7efe1"},
+    {"id":"color-accent","type":"color","label":"Accent (gold)","default":"#e4b65c"},
+    {"id":"color-berry","type":"color","label":"Ornament red","default":"#b5132f"},
+    {"id":"font-display","type":"string","label":"Display font","default":"Playfair Display"},
+    {"id":"font-body","type":"string","label":"Body font","default":"Montserrat"}
+  ]'
+>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1920, height=1080" />
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="assets/vendor/gsap.min.js"></script>
     <style>
-      /* Placeholders: replace all three with the film's own palette and display face. */
       :root {
-        --ground: #6b6b6b;
-        --ink: #ffffff;
-        --font-display: sans-serif;
+        --color-ground: #0e2a1f;
+        --color-ink: #f7efe1;
+        --color-accent: #e4b65c;
+        --color-berry: #b5132f;
+        --font-display: "Playfair Display";
+        --font-body: "Montserrat";
       }
       * {
         margin: 0;
@@ -22,40 +34,81 @@
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: var(--ground);
+        background: var(--color-ground);
       }
-      #root {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: var(--font-display);
-      }
-      #title {
-        color: var(--ink);
-        font-size: 72px;
-        font-weight: 600;
-        letter-spacing: -0.03em;
+      #snow {
+        z-index: 10;
       }
     </style>
   </head>
   <body>
-    <div data-hf-id="hf-199x"
+    <div data-hf-id="hf-kbh8"
       id="root"
       data-composition-id="main"
       data-start="0"
-      data-duration="10"
+      data-duration="15"
       data-width="1920"
       data-height="1080"
     >
-      <h1 data-hf-id="hf-v7pl" id="title" class="clip" data-start="0" data-duration="10" data-track-index="0">Title</h1>
+      <div data-hf-id="hf-0c3s"
+        id="invite"
+        data-composition-id="invite"
+        data-composition-src="compositions/invite.html"
+        data-start="0"
+        data-duration="3.5"
+        data-track-index="1"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+      <div data-hf-id="hf-7qir"
+        id="title"
+        data-composition-id="title"
+        data-composition-src="compositions/title.html"
+        data-start="invite"
+        data-duration="4.5"
+        data-track-index="1"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+      <div data-hf-id="hf-eskx"
+        id="details"
+        data-composition-id="details"
+        data-composition-src="compositions/details.html"
+        data-start="title"
+        data-duration="4"
+        data-track-index="1"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+      <div data-hf-id="hf-kcmr"
+        id="finale"
+        data-composition-id="finale"
+        data-composition-src="compositions/finale.html"
+        data-start="details"
+        data-duration="3"
+        data-track-index="1"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+      ></div>
+      <div data-hf-id="hf-mvse"
+        id="snow"
+        data-composition-id="snow"
+        data-composition-src="compositions/snow.html"
+        data-start="0"
+        data-duration="15"
+        data-track-index="2"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+        data-variable-values='{"density":"sparse","speed":"calm"}'
+      ></div>
     </div>
     <script>
-      const tl = gsap.timeline({ paused: true });
-      // Example: tl.fromTo("#title", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.18, ease: "power4.out" }, 0);
-      window.__timelines["main"] = tl;
-      tl.seek(0);
+      window.__timelines["main"] = gsap.timeline({ paused: true });
     </script>
   </body>
 </html>

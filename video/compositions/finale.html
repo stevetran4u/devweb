@@ -1,0 +1,167 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      background: var(--color-ground);
+      font-family: var(--font-body);
+      color: var(--color-ink);
+    }
+    #finale-glow {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        ellipse 60% 55% at 50% 50%,
+        color-mix(in srgb, var(--color-accent) 22%, var(--color-ground)) 0%,
+        var(--color-ground) 72%
+      );
+    }
+    #finale-confetti {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    #finale-confetti .finale-bit {
+      position: absolute;
+      left: 0;
+      top: 0;
+      border-radius: 2px;
+      background: var(--bit);
+    }
+    #finale-stack {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 380px;
+      text-align: center;
+    }
+    #finale-headline {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 150px;
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+    #finale-sign {
+      margin-top: 40px;
+      color: var(--color-accent);
+      font-size: 42px;
+      font-weight: 600;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+    }
+    #finale-stack .finale-word {
+      display: inline-block;
+      margin: 0 0.12em;
+    }
+  </style>
+  <div data-hf-id="hf-mkvx"
+    id="root"
+    data-composition-id="finale"
+    data-width="1920"
+    data-height="1080"
+    data-composition-variables='[
+      {"id":"finale-headline","type":"string","label":"Closing line","default":"See you there!"},
+      {"id":"finale-sign","type":"string","label":"Sign-off","default":"Merry Christmas"}
+    ]'
+  >
+    <div data-hf-id="hf-bhgu" id="finale-glow"></div>
+    <div data-hf-id="hf-5g6j" id="finale-confetti" aria-hidden="true" data-layout-ignore></div>
+    <div data-hf-id="hf-ycfn" id="finale-stack">
+      <h2 data-hf-id="hf-64iw" id="finale-headline" class="clip finale-line" data-start="0.35" data-duration="2.65" data-text-var="finale-headline">
+        See you there!
+      </h2>
+      <p data-hf-id="hf-7uo0" id="finale-sign" class="clip finale-line" data-start="0.35" data-duration="2.65" data-text-var="finale-sign">
+        Merry Christmas
+      </p>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const root = document.querySelector('[data-composition-id="finale"]');
+      const vars = (window.__hyperframes && window.__hyperframes.getVariables && window.__hyperframes.getVariables()) || {};
+      // Copy comes from the scene's variables; the markup text is the fallback.
+      const copy = (el) => String(vars[el.dataset.textVar] ?? el.textContent).trim();
+      const field = root.querySelector("#finale-confetti");
+      const W = Number(root.getAttribute("data-width"));
+      const H = Number(root.getAttribute("data-height"));
+
+      for (const line of root.querySelectorAll(".finale-line")) {
+        line.innerHTML = copy(line)
+          .split(/\s+/)
+          .map((w) => '<span class="finale-word">' + w + "</span>")
+          .join(" ");
+      }
+
+      // Deterministic per-index hash (no Math.random) so every frame renders the same.
+      const rnd = (n) => {
+        const x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+        return x - Math.floor(x);
+      };
+
+      // One burst from the centre: each bit has a launch velocity, gravity and drag.
+      const COUNT = 90;
+      const GRAVITY = 1400;
+      const DRAG = 1.6;
+      const BURST = 2.6;
+      const palette = ["var(--color-accent)", "var(--color-berry)", "var(--color-ink)", "#3f9a64"];
+      const bits = [];
+      for (let i = 0; i < COUNT; i++) {
+        const angle = -Math.PI / 2 + (rnd(i) - 0.5) * Math.PI * 1.7;
+        const speed = 300 + rnd(i + 100) * 1900;
+        const el = document.createElement("span");
+        el.className = "finale-bit";
+        el.style.setProperty("--bit", palette[i % palette.length]);
+        el.style.width = 10 + rnd(i + 200) * 10 + "px";
+        el.style.height = 16 + rnd(i + 300) * 14 + "px";
+        field.appendChild(el);
+        bits.push({
+          el,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          spin: (rnd(i + 400) - 0.5) * 1440,
+          flip: 2 + rnd(i + 500) * 6,
+        });
+      }
+
+      const state = { t: 0 };
+      const render = () => {
+        const t = state.t;
+        // Closed-form position under linear drag and gravity, so any t is renderable on its own.
+        const k = (1 - Math.exp(-DRAG * t)) / DRAG;
+        for (const b of bits) {
+          const x = W / 2 + b.vx * k;
+          const y = H / 2 + b.vy * k + (GRAVITY / DRAG) * (t - k);
+          const rot = b.spin * t;
+          const sy = Math.cos(b.flip * t * Math.PI);
+          b.el.style.transform =
+            "translate(" + x.toFixed(1) + "px," + y.toFixed(1) + "px) rotate(" + rot.toFixed(1) + "deg) scaleY(" + sy.toFixed(3) + ")";
+          b.el.style.opacity = t <= 0 ? 0 : 1;
+        }
+      };
+
+      const tl = gsap.timeline({ paused: true });
+      // The warm glow comes up with the burst, so the cut from the flood is clean.
+      tl.fromTo(root.querySelector("#finale-glow"), { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 0.05);
+      tl.fromTo(state, { t: 0 }, { t: BURST, duration: BURST, ease: "none", onUpdate: render, immediateRender: true }, 0.1);
+      // Closing line lands per word; the sign-off follows while it settles.
+      tl.fromTo(
+        root.querySelectorAll("#finale-headline .finale-word"),
+        { opacity: 0, filter: "blur(8px)", scale: 1.06 },
+        { opacity: 1, filter: "blur(0px)", scale: 1, duration: 0.35, ease: "expo.out", stagger: 0.09 },
+        0.35,
+      );
+      tl.fromTo(
+        root.querySelectorAll("#finale-sign .finale-word"),
+        { color: gsap.utils.interpolate(getComputedStyle(root).getPropertyValue("--color-ground").trim(), getComputedStyle(root).getPropertyValue("--color-accent").trim(), 0.2) },
+        { color: getComputedStyle(root).getPropertyValue("--color-accent").trim(), duration: 0.3, ease: "power2.out", stagger: 0.1 },
+        0.8,
+      );
+      render();
+
+      window.__timelines["finale"] = tl;
+    })();
+  </script>
+</template>
